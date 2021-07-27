@@ -1,0 +1,7 @@
+workspace:
+  name: "pjobs"
+  version: "1.0.0"
+
+packages:
+  "pjobs":
+    folder: "package"

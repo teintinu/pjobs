@@ -1,0 +1,15 @@
+# monoclean
+node_modules
+.nvm.rc
+package.json
+package-lock.json
+yarn-lock.*
+yarn.lock
+tsconfig.**
+jest.config.js
+tmp
+out
+.eslintrc.json
+coverage
+.vscode
+
