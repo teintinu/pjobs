@@ -19,7 +19,7 @@
   "scripts": {
     "buildDTS": "dts-bundle-generator --project ./tsconfig.build.json --verbose",
     "buildWithTSC": "tsc -p ./tsconfig.build.json",
-    "prepublish": "yarn test && yarn buildWithTSC",
+    "prepublish2": "yarn test && yarn buildWithTSC",
     "test": "jest --config ../jest.config.js .",
     "clean": "monoclean clean"
   }
