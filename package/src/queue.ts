@@ -1,16 +1,17 @@
+import { asap } from './asap'
 
 export type QueueState = {
-  pending(): number
-  total(): number
-  done(): number
-  percent(): number
-  rate(): number | '-'
-  timeRemaining(): string
+  readonly pending: number
+  readonly total: number
+  readonly done: number
+  readonly percent: number
+  readonly rate: number | '-'
+  readonly timeRemaining: string
 }
 
 export interface QueryPromisesOpts {
   concurrency?: number,
-  onProgress?: (status: 'idle'|QueueState) => void
+  onProgress?: (status: 'finished'|QueueState) => void
 }
 
 export type Job<T> = () => Promise<T>
@@ -26,26 +27,28 @@ export function queuePromises (opts?: QueryPromisesOpts) {
   let canRate = 0
   let canRefresh = 0
   const state: QueueState = {
-    total () {
+    get total () {
       return total
     },
-    pending () {
+    get pending () {
       return queue.length
     },
-    done () {
+    get done () {
       return total - queue.length
     },
-    percent () {
-      return (total - queue.length) / total
+    get percent () {
+      return Math.round((total - queue.length) / total * 1000) / 10
     },
-    rate () {
+    get rate () {
       const now = Date.now()
-      if (now > canRate) return '-'
-      return (total - queue.length) / (now - start)
+      if (now < canRate) return '-'
+      const ellapsed = (now - start) / 1000
+      const rate = (total - queue.length) / (ellapsed)
+      return rate
     },
-    timeRemaining () {
+    get timeRemaining () {
       const now = Date.now()
-      if (now > canRate) return '-'
+      if (now < canRate) return '-'
       const ellapsed = (now - start) / 1000
       const rate = (total - queue.length) / (ellapsed)
       const seconds = (total - queue.length) / rate
@@ -72,7 +75,7 @@ export function queuePromises (opts?: QueryPromisesOpts) {
       return new Promise<void>((resolve) => {
         setTimeout(check, 100)
         function check () {
-          if (idle && queue.length === 0) resolve()
+          if (running + queue.length === 0) resolve()
           else setTimeout(check, 100)
         }
       })
@@ -88,23 +91,24 @@ export function queuePromises (opts?: QueryPromisesOpts) {
     if (now > canRefresh) {
       canRefresh = now + 1000
       onProgress && setTimeout(() => {
-        onProgress(state)
+        if (total > 0) {
+          onProgress(state)
+        }
       }, 1)
     }
     if (queue.length) {
-      if (running < concurrency) {
-        setTimeout(processNext, 1)
-      }
+      asap(processNext)
     } else if (running < 1) {
       total = 0
+      onProgress && asap(() => onProgress('finished'))
       idle = true
     }
   }
 
   async function processNext () {
-    if (queue.length < 1) return
-    const fn = queue.shift()
-    if (fn) {
+    while (running < concurrency) {
+      const fn = queue.shift()
+      if (!fn) break
       running++
       try {
         await fn()

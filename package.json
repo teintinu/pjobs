@@ -27,7 +27,10 @@
     "clean": "monoclean clean",
     "publish": "monoclean publish",
     "start": "monoclean run",
-    "tsc-watch": "tsc -p . --watch"
+    "tsc-watch": "tsc -p . --watch",
+    "test": "jest",
+    "test-coverage": "jest --coverage",
+    "lint": "eslint"
   },
   "workspaces": [
     "package"
