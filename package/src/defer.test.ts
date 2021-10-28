@@ -1,6 +1,5 @@
-import { asap } from './asap'
-import { defer } from './defer'
-import { queuePromises } from './queue'
+
+import { defer, asap, queuePromises } from '..'
 
 describe('defer', () => {
   it('usage sample', async () => {

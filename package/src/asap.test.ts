@@ -1,5 +1,4 @@
-import { sleep } from './sleep'
-import { asap } from './asap'
+import { sleep, asap } from '..'
 
 describe('asap', () => {
   it('should delay execution function', async () => {

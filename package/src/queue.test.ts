@@ -1,5 +1,4 @@
-import { queuePromises } from './queue'
-import { sleep } from './sleep'
+import { queuePromises, sleep } from '..'
 
 describe('queuePromises', () => {
   it('usage sample', async () => {

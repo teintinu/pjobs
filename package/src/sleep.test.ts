@@ -1,4 +1,4 @@
-import { sleep } from './sleep'
+import { sleep } from '..'
 
 it('sleep', async () => {
   const start = Date.now()
