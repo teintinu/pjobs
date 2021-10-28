@@ -1,3 +1,6 @@
+[![Node.js CI](https://github.com/teintinu/pjobs/actions/workflows/test.yml/badge.svg)](https://github.com/teintinu/pjobs/actions/workflows/test.yml)
+[![Coverage Status](https://coveralls.io/repos/github/teintinu/pjobs/badge.svg?branch=main)](https://coveralls.io/github/teintinu/pjobs?branch=main)
+
 # pjobs
 A simple and efficient queue job executor using promises. And some promise's utilities.
 
