@@ -19,7 +19,9 @@ import { queuePromises } from 'pjobs'
 const queue = queuePromises({ 
   concurrency: 1, // maximum of promises running concurrently
   onProgress (status) { // allow you to inform users about execution progress
-    console.log('queue status: ', status)
+    console.log('done: ', status.percent, '%')
+    console.log('speed: ', status.rate) // jobs runned per second
+    console.log('estimated time remaining to finish: ', status.timeRemaining)
   }
 })
 queue.enqueue(async () => { // add a job to the queue

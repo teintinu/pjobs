@@ -1,7 +1,7 @@
 {
   "name": "pjobs",
   "description": "A simple and efficient queue job executor using promises. And some promise's utilities.",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "private": false,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
