@@ -1,0 +1,26 @@
+{
+  "name": "pjobs",
+  "description": "A simple and efficient queue job executor using promises. And some promise's utilities.",
+  "version": "1.0.1",
+  "private": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "devDependencies": {
+    "@types/jest": "^27.0.2",
+    "@types/source-map-support": "^0.5.4",
+    "dts-bundle-generator": "^5.9.0",
+    "esbuild": "^0.13.9",
+    "esbuild-jest": "^0.5.0",
+    "jest": "^27.3.1",
+    "source-map-support": "^0.5.20",
+    "ts-jest": "^27.0.7",
+    "typescript": "^4.4.4"
+  },
+  "scripts": {
+    "buildDTS": "dts-bundle-generator --project ./tsconfig.build.json --verbose",
+    "buildWithTSC": "tsc -p ./tsconfig.build.json",
+    "prepublish": "yarn test && yarn buildWithTSC",
+    "test": "jest --config ../jest.config.js .",
+    "clean": "monoclean clean"
+  }
+}

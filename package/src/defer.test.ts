@@ -1,6 +1,22 @@
 import { defer } from './defer'
+import { queuePromises } from './queue'
 
 describe('defer', () => {
+  it('usage sample', async () => {
+    const taskOne = defer<void>()
+    const queue = queuePromises()
+    queue.enqueue(async () => {
+      console.log('task 1')
+      taskOne.resolve()
+    })
+    queue.enqueue(async () => {
+      console.log('task 2')
+    })
+    expect(queue.state()).not.toBe('idle')
+    await taskOne.promise
+    await queue.waitFor()
+    expect(queue.state()).toBe('idle')
+  })
   it('resolving', async () => {
     const p = defer<number>()
     setTimeout(() => p.resolve(1), 1)
@@ -14,7 +30,7 @@ describe('defer', () => {
     try {
       const v = await p.promise
       expect(v).toBeUndefined()
-    } catch (e) {
+    } catch (e: any) {
       expect(e.message).toBe('error')
     }
   })

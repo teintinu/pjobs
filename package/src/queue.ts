@@ -9,13 +9,15 @@ export type QueueState = {
 }
 
 export interface QueryPromisesOpts {
-  concurrency: number,
-  onProgress: (status: 'idle'|QueueState) => void
+  concurrency?: number,
+  onProgress?: (status: 'idle'|QueueState) => void
 }
 
 export type Job<T> = () => Promise<T>
 
-export function queuePromises ({ concurrency, onProgress }: QueryPromisesOpts) {
+export function queuePromises (opts?: QueryPromisesOpts) {
+  const concurrency = opts?.concurrency || 1
+  const onProgress = opts?.onProgress
   const queue: Array<Job<any>> = []
   let total = 0
   let idle = true
@@ -65,6 +67,15 @@ export function queuePromises ({ concurrency, onProgress }: QueryPromisesOpts) {
       total++
       canRate = Date.now() + 1000
       scheduleProcess()
+    },
+    waitFor () {
+      return new Promise<void>((resolve) => {
+        setTimeout(check, 100)
+        function check () {
+          if (idle && queue.length === 0) resolve()
+          else setTimeout(check, 100)
+        }
+      })
     }
   }
 
@@ -76,7 +87,7 @@ export function queuePromises ({ concurrency, onProgress }: QueryPromisesOpts) {
     const now = Date.now()
     if (now > canRefresh) {
       canRefresh = now + 1000
-      setTimeout(() => {
+      onProgress && setTimeout(() => {
         onProgress(state)
       }, 1)
     }
@@ -93,12 +104,14 @@ export function queuePromises ({ concurrency, onProgress }: QueryPromisesOpts) {
   async function processNext () {
     if (queue.length < 1) return
     const fn = queue.shift()
-    running++
-    try {
-      await fn()
-    } finally {
-      running--
-      scheduleProcess()
+    if (fn) {
+      running++
+      try {
+        await fn()
+      } finally {
+        running--
+        scheduleProcess()
+      }
     }
   }
 }

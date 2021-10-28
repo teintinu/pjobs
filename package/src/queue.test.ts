@@ -2,6 +2,24 @@ import { queuePromises } from './queue'
 import { sleep } from './sleep'
 
 describe('queuePromises', () => {
+  it('usage sample', async () => {
+    const queue = queuePromises({
+      concurrency: 1,
+      onProgress (status) {
+        console.log('queue status: ', status)
+      }
+    })
+    queue.enqueue(async () => {
+      console.log('task 1')
+    })
+    queue.enqueue(async () => {
+      console.log('task 2')
+    })
+    expect(queue.state()).not.toBe('idle')
+    await queue.waitFor()
+    expect(queue.state()).toBe('idle')
+  })
+
   it('should wait close method be finish', async () => {
     const history: number[] = []
 
@@ -27,7 +45,7 @@ describe('queuePromises', () => {
 
     expect(queue.state()).not.toBe('idle')
 
-    await sleep(50)
+    await queue.waitFor()
     expect(queue.state()).toBe('idle')
 
     for (let i = 30; i < 60; i++) {
@@ -43,7 +61,7 @@ describe('queuePromises', () => {
 
     expect(queue.state()).not.toBe('idle')
 
-    await sleep(50)
+    await queue.waitFor()
     expect(queue.state()).toBe('idle')
 
     expect(count).toBe(60)
