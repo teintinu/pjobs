@@ -58,3 +58,11 @@ allow you pause execution flow for some miliseconds
 import { sleep } from 'pjobs'
 await sleep(100) // pause execution flow for 100 miliseconds
 ```
+## `asap` 
+delay execution of a function to as soon as possible
+
+```typescript
+import { asap } from 'pjobs'
+asap(()=>console.log('b')) // 'b' will be logged after 'a'
+console.log('a');
+```
