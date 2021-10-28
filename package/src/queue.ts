@@ -16,7 +16,13 @@ export interface QueryPromisesOpts {
 
 export type Job<T> = () => Promise<T>
 
-export function queuePromises (opts?: QueryPromisesOpts) {
+export interface QueuePromises {
+  state (): 'idle'|QueueState,
+  enqueue<T> (item: Job<T>):void,
+  waitFor(): Promise<void>
+}
+
+export function queuePromises (opts?: QueryPromisesOpts): QueuePromises {
   const concurrency = opts?.concurrency || 1
   const onProgress = opts?.onProgress
   const queue: Array<Job<any>> = []
