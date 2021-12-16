@@ -8,7 +8,7 @@ module.exports = {
   preset: 'ts-jest',
   modulePathIgnorePatterns: ['dist'],
   testPathIgnorePatterns: ['node_modules', 'dist'],
-  testRegex: '(\\.(test|spec|steps))\\.(ts|tsx)$',
+  testMatch: ['**/*.test.ts'],
   globals: {
     'ts-jest': {
       tsConfig: 'tsconfig.test.json'

@@ -1,4 +1,5 @@
 import { asap } from './asap'
+import { defer } from './defer'
 
 export type QueueState = {
   readonly pending: number
@@ -20,6 +21,7 @@ export interface QueuePromises {
   readonly runned: number
   state (): 'idle'|QueueState,
   enqueue<T> (item: Job<T>):void,
+  promise<T> (item: Job<T>): Promise<T>,
   waitFor(): Promise<void>
 }
 
@@ -82,6 +84,11 @@ export function queuePromises (opts?: QueryPromisesOpts): QueuePromises {
       size++
       canRate = Date.now() + 1000
       scheduleProcess()
+    },
+    promise<T> (item: Job<T>) {
+      const deferred = defer<T>()
+      this.enqueue( () => item().then(deferred.resolve, deferred.reject))
+      return deferred.promise
     },
     waitFor () {
       return new Promise<void>((resolve, reject) => {

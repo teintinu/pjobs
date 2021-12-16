@@ -1,7 +1,7 @@
 {
   "name": "pjobs",
   "description": "A simple and efficient queue job executor using promises. And some promise's utilities.",
-  "version": "1.0.1",
+  "version": "1.0.7",
   "private": true,
   "devDependencies": {
     "@types/jest": "^27.0.2",

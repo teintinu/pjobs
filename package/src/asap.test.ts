@@ -1,4 +1,4 @@
-import { sleep, asap } from '..'
+import { sleep, asap } from '.'
 
 describe('asap', () => {
   it('should delay execution function', async () => {

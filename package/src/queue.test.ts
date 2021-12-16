@@ -1,4 +1,4 @@
-import { queuePromises, sleep } from '..'
+import { queuePromises, sleep } from '.'
 
 describe('queuePromises', () => {
   it('usage sample', async () => {
@@ -11,12 +11,14 @@ describe('queuePromises', () => {
     queue.enqueue(async () => {
       console.log('task 1')
     })
-    queue.enqueue(async () => {
+    const resultOfTask2 = queue.promise(async () => {
       console.log('task 2')
+      return 'OK'
     })
     expect(queue.state()).not.toBe('idle')
     await queue.waitFor()
     expect(queue.state()).toBe('idle')
+    expect(await resultOfTask2).toBe('OK')
   })
 
   it('should wait close method be finish', async () => {

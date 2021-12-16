@@ -1,22 +1,14 @@
 
-import { defer, asap, queuePromises } from '..'
+import { defer, asap } from '.'
 
 describe('defer', () => {
   it('usage sample', async () => {
-    const taskOne = defer<void>()
-    const queue = queuePromises()
-    queue.enqueue(async () => {
-      console.log('task 1')
-      taskOne.resolve()
-    })
-    queue.enqueue(async () => {
-      console.log('task 2')
-    })
-    expect(queue.state()).not.toBe('idle')
-    await taskOne.promise
-    await queue.waitFor()
-    expect(queue.state()).toBe('idle')
+    const deffered = defer<number>()
+    setTimeout( ()=> deffered.resolve(1), 10)
+    setTimeout( ()=> deffered.reject(new Error('timeout')), 100)
+    expect(await deffered.promise).toBe(1)
   })
+
   it('resolving', async () => {
     const p = defer<number>()
     asap(() => p.resolve(1))
