@@ -87,7 +87,7 @@ export function queuePromises (opts?: QueryPromisesOpts): QueuePromises {
     },
     promise<T> (item: Job<T>) {
       const deferred = defer<T>()
-      this.enqueue( () => item().then(deferred.resolve, deferred.reject))
+      this.enqueue(() => item().then(deferred.resolve, deferred.reject))
       return deferred.promise
     },
     waitFor () {

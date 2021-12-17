@@ -25,7 +25,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - run: yarn
-    - run: cd package && yarn build
+    - run: yarn build
     - run: yarn test-coverage
     - name: Coveralls 
       uses: coverallsapp/github-action@master

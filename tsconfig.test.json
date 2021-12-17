@@ -6,7 +6,7 @@
     "baseUrl": ".",
     "paths": {
       "pjobs": [
-        "./package/src"
+        "./src"
       ]
     }
   },

@@ -2,7 +2,9 @@
   "name": "pjobs",
   "description": "A simple and efficient queue job executor using promises. And some promise's utilities.",
   "version": "1.0.7",
-  "private": true,
+  "private": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "devDependencies": {
     "@types/jest": "^27.0.2",
     "@types/source-map-support": "^0.5.4",
@@ -16,23 +18,19 @@
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^5.1.1",
-    "eslint-plugin-react": "^7.26.1",
     "jest": "^27.3.1",
     "source-map-support": "^0.5.20",
     "ts-jest": "^27.0.7",
     "typescript": "^4.4.4"
   },
   "scripts": {
-    "build": "monoclean build",
-    "clean": "monoclean clean",
-    "publish": "monoclean publish",
-    "start": "monoclean run",
-    "tsc-watch": "tsc -p . --watch",
+    "build": "./build.sh",
+    "buildDTS": "dts-bundle-generator --project ./tsconfig.build.json src/index.ts -o dist/index.d.ts",
+    "buildWithEsbuild": "esbuild --bundle src/index.ts --platform=node --format=cjs --minify --outfile=dist/index.js",
+    "buildWithTSC": "tsc -p ./tsconfig.build.json",
     "test": "jest",
+    "prepublishOnly": "yarn buildWithEsbuild && yarn test && yarn build",
     "test-coverage": "jest --coverage",
-    "lint": "eslint"
-  },
-  "workspaces": [
-    "package"
-  ]
+    "lint": "eslint --fix --config .eslintrc.js"
+  }
 }

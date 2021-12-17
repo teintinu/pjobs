@@ -4,8 +4,8 @@ import { defer, asap } from '.'
 describe('defer', () => {
   it('usage sample', async () => {
     const deffered = defer<number>()
-    setTimeout( ()=> deffered.resolve(1), 10)
-    setTimeout( ()=> deffered.reject(new Error('timeout')), 100)
+    setTimeout(() => deffered.resolve(1), 10)
+    setTimeout(() => deffered.reject(new Error('timeout')), 100)
     expect(await deffered.promise).toBe(1)
   })
 

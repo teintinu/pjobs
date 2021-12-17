@@ -1,8 +1,24 @@
 {
-  "compilerOptions": {},
-  "references": [
-    {
-      "path": "./package"
-    }
+  "extends": "./tsconfig.settings.json",
+  "compilerOptions": {
+    "composite": true,
+    "lib": [
+      "ESNext"
+    ],
+    "tsBuildInfoFile": "dist/.tsbuildinfo",
+    "rootDir": "./src",
+    "baseUrl": ".",
+    "outDir": "./dist"
+  },
+  "exclude": [
+    "dist"
+  ],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.ts",
+    "src/**/*.spec.tsx"
   ]
 }
