@@ -23,6 +23,12 @@ export interface QueuePromises {
   enqueue<T> (item: Job<T>):void,
   promise<T> (item: Job<T>): Promise<T>,
   waitFor(): Promise<void>
+  forceState (opts: {
+    start: number,
+    canRate: number,
+    canRefresh: number,
+    size: number,
+  }): void
 }
 
 export function queuePromises (opts?: QueryPromisesOpts): QueuePromises {
@@ -63,12 +69,13 @@ export function queuePromises (opts?: QueryPromisesOpts): QueuePromises {
       const ellapsed = (now - start) / 1000
       const rate = (size - queue.length) / (ellapsed)
       const seconds = (size - queue.length) / rate
+      if (seconds < 2) return 'one second'
       if (seconds < 50) return (seconds).toFixed(0) + ' seconds'
       if (seconds < 120) return 'one minute'
       const minutes = seconds / 60
       if (minutes < 60) return (minutes).toFixed(0) + ' minutes'
       const hours = minutes / 60
-      if (hours < 120) return 'one hour'
+      if (minutes < 120) return 'one hour'
       return (hours).toFixed(0) + ' hours'
     }
   }
@@ -101,6 +108,17 @@ export function queuePromises (opts?: QueryPromisesOpts): QueuePromises {
           } else setTimeout(check, 100)
         }
       })
+    },
+    forceState (opts: {
+      start: number,
+      canRate: number,
+      canRefresh: number,
+      size: number,
+    }) {
+      start = opts.start
+      canRate = opts.canRate
+      canRefresh = opts.canRefresh
+      size = opts.size
     }
   }
 

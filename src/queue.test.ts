@@ -131,7 +131,7 @@ describe('queuePromises', () => {
     expect(queue.state()).toBe('idle')
     expect(log).toEqual([
       'done: ~0,pending: ~100,percent: ~0,rate: -,timeRemaining: -,size: 100',
-      'done: ~10,pending: ~90,percent: ~10,rate: ~10,timeRemaining: 1 seconds,size: 100',
+      'done: ~10,pending: ~90,percent: ~10,rate: ~10,timeRemaining: one second,size: 100',
       'done: ~20,pending: ~80,percent: ~20,rate: ~10,timeRemaining: 2 seconds,size: 100',
       'done: ~30,pending: ~70,percent: ~30,rate: ~10,timeRemaining: 3 seconds,size: 100',
       'done: ~40,pending: ~60,percent: ~40,rate: ~10,timeRemaining: 4 seconds,size: 100',
@@ -144,10 +144,113 @@ describe('queuePromises', () => {
     ])
   })
 
-  it('waitFor must fail when some job fail', async () => {
-    const queue = queuePromises({
-      concurrency: 1
+  it('should support forced status', async () => {
+    const queue = queuePromises()
+    for (let i = 1; i <= 100; i++) {
+      queue.enqueue(async () => i >= 10 ? sleep(5) : undefined)
+    }
+    await sleep(1)
+    let state = queue.state()
+    if (state === 'idle') {
+      expect(state).not.toBe('idle')
+    } else {
+      expect(state.percent).toEqual(10)
+      expect(state.rate).toEqual('-')
+      expect(state.timeRemaining).toEqual('-')
+    }
+
+    state = queue.state()
+    queue.forceState({
+      start: Date.now() - 900,
+      canRate: Date.now(),
+      canRefresh: Date.now(),
+      size: 100
     })
+    if (state === 'idle') {
+      expect(state).not.toBe('idle')
+    } else {
+      expect(state.percent).toEqual(10)
+      expect(state.rate).toBeGreaterThan(5)
+      expect(state.timeRemaining).toEqual('one second')
+    }
+
+    state = queue.state()
+    queue.forceState({
+      start: Date.now() - 22100,
+      canRate: Date.now(),
+      canRefresh: Date.now(),
+      size: 100
+    })
+    if (state === 'idle') {
+      expect(state).not.toBe('idle')
+    } else {
+      expect(state.percent).toEqual(10)
+      expect(state.rate).toBeGreaterThan(0.4)
+      expect(state.timeRemaining).toEqual('22 seconds')
+    }
+
+    queue.forceState({
+      start: Date.now() - 100000,
+      canRate: Date.now(),
+      canRefresh: Date.now(),
+      size: 100
+    })
+    if (state === 'idle') {
+      expect(state).not.toBe('idle')
+    } else {
+      expect(state.percent).toEqual(10)
+      expect(state.rate).toBeGreaterThan(0.05)
+      expect(state.timeRemaining).toEqual('one minute')
+    }
+
+    queue.forceState({
+      start: Date.now() - 600000,
+      canRate: Date.now(),
+      canRefresh: Date.now(),
+      size: 100
+    })
+    if (state === 'idle') {
+      expect(state).not.toBe('idle')
+    } else {
+      expect(state.percent).toEqual(10)
+      expect(state.rate).toBeGreaterThan(0.01)
+      expect(state.timeRemaining).toEqual('10 minutes')
+    }
+
+    queue.forceState({
+      start: Date.now() - 3700000,
+      canRate: Date.now(),
+      canRefresh: Date.now(),
+      size: 100
+    })
+    if (state === 'idle') {
+      expect(state).not.toBe('idle')
+    } else {
+      expect(state.percent).toEqual(10)
+      expect(state.rate).toBeGreaterThan(0.0002)
+      expect(state.timeRemaining).toEqual('one hour')
+    }
+
+    queue.forceState({
+      start: Date.now() - 7300000,
+      canRate: Date.now(),
+      canRefresh: Date.now(),
+      size: 100
+    })
+    if (state === 'idle') {
+      expect(state).not.toBe('idle')
+    } else {
+      expect(state.percent).toEqual(10)
+      expect(state.rate).toBeGreaterThan(0.00002)
+      expect(state.timeRemaining).toEqual('2 hours')
+    }
+
+    await queue.waitFor()
+    expect(queue.state()).toBe('idle')
+  })
+
+  it('waitFor must fail when some job fail', async () => {
+    const queue = queuePromises({ })
     for (let i = 1; i < 100; i++) {
       const fn = (k:number) => {
         queue.enqueue(async () => {

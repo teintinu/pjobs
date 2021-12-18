@@ -25,7 +25,7 @@ const queue = queuePromises({
 queue.enqueue(async () => { // add a job to the queue
   console.log('task 1')
 })
-const promiseForTask2 = queue.promise(async () => { // add another job to the queue and returns a promise to this
+const promiseForTask2 = queue.promise(async () => { // add another job but returns a promise to this
   console.log('task 2')
   return 'OK'
 })
