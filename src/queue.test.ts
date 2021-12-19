@@ -3,7 +3,6 @@ import { queuePromises, sleep } from '.'
 describe('queuePromises', () => {
   it('usage sample', async () => {
     const queue = queuePromises({
-      concurrency: 1,
       onProgress (status) {
         console.log('queue status: ', status)
       }
@@ -25,22 +24,18 @@ describe('queuePromises', () => {
     const history: number[] = []
 
     let count = 0
-    const queue = queuePromises({
-      concurrency: 10,
-      onProgress () {
-      }
-    })
+    const queue = queuePromises({ concurrency: 10 })
 
     expect(queue.state()).toBe('idle')
 
+    const fn = (k:number) => {
+      queue.enqueue(async () => {
+        await sleep(k % 10 === 5 ? 50 : 1)
+        history.push(k)
+        count++
+      })
+    }
     for (let i = 0; i < 30; i++) {
-      const fn = (k:number) => {
-        queue.enqueue(async () => {
-          await sleep(k % 10 === 5 ? 30 : 1)
-          history.push(k)
-          count++
-        })
-      }
       fn(i)
     }
 
@@ -49,7 +44,7 @@ describe('queuePromises', () => {
       expect(afterEnqueueState).not.toBe('idle or finished')
     } else {
       expect(afterEnqueueState.done).toBe(0)
-      expect(afterEnqueueState.pending).toBe(30)
+      expect(afterEnqueueState.pending).toBe(20)
       expect(afterEnqueueState.percent).toBe(0)
       expect(afterEnqueueState.rate).toBe('-')
       expect(afterEnqueueState.timeRemaining).toBe('-')
@@ -91,12 +86,13 @@ describe('queuePromises', () => {
 
   it('should report valid status', async () => {
     const log: string[] = []
+    let lastloged = -1
     const queue = queuePromises({
       concurrency: 1,
       onProgress (status) {
-        if (status === 'finished') {
-          log.push('finished:' + queue.runned)
-        } else {
+        if (typeof status !== 'string') {
+          if (lastloged === status.done) return
+          lastloged = status.done
           const expectedDone = log.length * 10
           const done = (status.done >= expectedDone - 2 && status.done <= expectedDone + 2)
             ? '~' + expectedDone
@@ -132,76 +128,92 @@ describe('queuePromises', () => {
     await queue.waitFor()
     expect(queue.state()).toBe('idle')
     expect(log).toEqual([
-      'done: ~0,pending: ~100,running: 0,percent: ~0,rate: -,timeRemaining: -,size: 100',
-      'done: ~10,pending: ~90,running: 0,percent: ~10,rate: ~10,timeRemaining: one second,size: 100',
-      'done: ~20,pending: ~80,running: 0,percent: ~20,rate: ~10,timeRemaining: 2 seconds,size: 100',
-      'done: ~30,pending: ~70,running: 0,percent: ~30,rate: ~10,timeRemaining: 3 seconds,size: 100',
-      'done: ~40,pending: ~60,running: 0,percent: ~40,rate: ~10,timeRemaining: 4 seconds,size: 100',
-      'done: ~50,pending: ~50,running: 0,percent: ~50,rate: ~10,timeRemaining: 5 seconds,size: 100',
-      'done: ~60,pending: ~40,running: 0,percent: ~60,rate: ~10,timeRemaining: 6 seconds,size: 100',
-      'done: ~70,pending: ~30,running: 0,percent: ~70,rate: ~10,timeRemaining: 7 seconds,size: 100',
-      'done: ~80,pending: ~20,running: 0,percent: ~80,rate: ~10,timeRemaining: 8 seconds,size: 100',
-      'done: ~90,pending: ~10,running: 0,percent: ~90,rate: ~10,timeRemaining: 9 seconds,size: 100',
-      'finished:100'
+      'done: ~0,pending: ~100,running: 1,percent: ~0,rate: -,timeRemaining: -,size: 100',
+      'done: ~10,pending: ~90,running: 1,percent: ~10,rate: ~10,timeRemaining: 8 seconds,size: 100',
+      'done: ~20,pending: ~80,running: 1,percent: ~20,rate: ~10,timeRemaining: 8 seconds,size: 100',
+      'done: ~30,pending: ~70,running: 1,percent: ~30,rate: ~10,timeRemaining: 7 seconds,size: 100',
+      'done: ~40,pending: ~60,running: 1,percent: ~40,rate: ~10,timeRemaining: 6 seconds,size: 100',
+      'done: ~50,pending: ~50,running: 1,percent: ~50,rate: ~10,timeRemaining: 5 seconds,size: 100',
+      'done: ~60,pending: ~40,running: 1,percent: ~60,rate: ~10,timeRemaining: 4 seconds,size: 100',
+      'done: ~70,pending: ~30,running: 1,percent: ~70,rate: ~10,timeRemaining: 3 seconds,size: 100',
+      'done: ~80,pending: ~20,running: 1,percent: ~80,rate: ~10,timeRemaining: one second,size: 100',
+      'done: ~90,pending: ~10,running: 1,percent: ~90,rate: ~10,timeRemaining: one second,size: 100'
     ])
   })
 
   it('should support forced status', async () => {
-    const queue = queuePromises()
-    for (let i = 1; i <= 100; i++) {
-      queue.enqueue(async () => i >= 10 ? sleep(5) : undefined)
+    const queue = queuePromises({
+      concurrency: 10
+    })
+    for (let i = 1; i <= 20; i++) {
+      queue.enqueue(
+        i <= 10
+          ? async () => await sleep(1000)
+          : async () => undefined
+      )
     }
-    await sleep(1)
+
     let state = queue.state()
     if (typeof state === 'string') {
       expect(state).not.toBe('idle or finished')
     } else {
-      expect(state.percent).toEqual(10)
+      expect(state.size).toEqual(20)
+      expect(state.done).toEqual(0)
+      expect(state.running).toEqual(10)
       expect(state.rate).toEqual('-')
       expect(state.timeRemaining).toEqual('-')
     }
 
     state = queue.state()
     queue.forceState({
-      start: Date.now() - 900,
+      start: Date.now() - 1000,
       canRate: Date.now(),
       canRefresh: Date.now(),
-      size: 100
+      size: 40,
+      runned: 20
     })
     if (typeof state === 'string') {
       expect(state).not.toBe('idle or finished')
     } else {
-      expect(state.percent).toEqual(10)
-      expect(state.rate).toBeGreaterThan(5)
+      expect(state.size).toEqual(40)
+      expect(state.done).toEqual(20)
+      expect(state.running).toEqual(10)
+      expect(state.rate).toBeGreaterThanOrEqual(29.9)
       expect(state.timeRemaining).toEqual('one second')
     }
 
     state = queue.state()
     queue.forceState({
-      start: Date.now() - 22100,
+      start: Date.now() - 10000,
       canRate: Date.now(),
       canRefresh: Date.now(),
-      size: 100
+      size: 40,
+      runned: 20
     })
     if (typeof state === 'string') {
       expect(state).not.toBe('idle or finished')
     } else {
-      expect(state.percent).toEqual(10)
-      expect(state.rate).toBeGreaterThan(0.4)
-      expect(state.timeRemaining).toEqual('22 seconds')
+      expect(state.size).toEqual(40)
+      expect(state.done).toEqual(20)
+      expect(state.running).toEqual(10)
+      expect(state.rate).toBeGreaterThanOrEqual(2.9)
+      expect(state.timeRemaining).toMatch(/\d+ seconds/)
     }
 
     queue.forceState({
       start: Date.now() - 100000,
       canRate: Date.now(),
       canRefresh: Date.now(),
-      size: 100
+      size: 40,
+      runned: 20
     })
     if (typeof state === 'string') {
       expect(state).not.toBe('idle or finished')
     } else {
-      expect(state.percent).toEqual(10)
-      expect(state.rate).toBeGreaterThan(0.05)
+      expect(state.size).toEqual(40)
+      expect(state.done).toEqual(20)
+      expect(state.running).toEqual(10)
+      expect(state.rate).toBeGreaterThanOrEqual(0.29)
       expect(state.timeRemaining).toEqual('one minute')
     }
 
@@ -209,42 +221,51 @@ describe('queuePromises', () => {
       start: Date.now() - 600000,
       canRate: Date.now(),
       canRefresh: Date.now(),
-      size: 100
+      size: 40,
+      runned: 20
     })
     if (typeof state === 'string') {
       expect(state).not.toBe('idle or finished')
     } else {
-      expect(state.percent).toEqual(10)
-      expect(state.rate).toBeGreaterThan(0.01)
-      expect(state.timeRemaining).toEqual('10 minutes')
+      expect(state.size).toEqual(40)
+      expect(state.done).toEqual(20)
+      expect(state.running).toEqual(10)
+      expect(state.rate).toBeGreaterThanOrEqual(0.049)
+      expect(state.timeRemaining).toMatch(/\d+ minutes/)
     }
 
     queue.forceState({
-      start: Date.now() - 3700000,
+      start: Date.now() - 6000000,
       canRate: Date.now(),
       canRefresh: Date.now(),
-      size: 100
+      size: 40,
+      runned: 20
     })
     if (typeof state === 'string') {
       expect(state).not.toBe('idle or finished')
     } else {
-      expect(state.percent).toEqual(10)
-      expect(state.rate).toBeGreaterThan(0.0002)
+      expect(state.size).toEqual(40)
+      expect(state.done).toEqual(20)
+      expect(state.running).toEqual(10)
+      expect(state.rate).toBeGreaterThanOrEqual(0.0049)
       expect(state.timeRemaining).toEqual('one hour')
     }
 
     queue.forceState({
-      start: Date.now() - 7300000,
+      start: Date.now() - 12000000,
       canRate: Date.now(),
       canRefresh: Date.now(),
-      size: 100
+      size: 40,
+      runned: 20
     })
     if (typeof state === 'string') {
       expect(state).not.toBe('idle or finished')
     } else {
-      expect(state.percent).toEqual(10)
-      expect(state.rate).toBeGreaterThan(0.00002)
-      expect(state.timeRemaining).toEqual('2 hours')
+      expect(state.size).toEqual(40)
+      expect(state.done).toEqual(20)
+      expect(state.running).toEqual(10)
+      expect(state.rate).toBeGreaterThanOrEqual(0.00249)
+      expect(state.timeRemaining).toMatch(/\d+ hours/)
     }
 
     await queue.waitFor()
