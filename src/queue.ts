@@ -20,7 +20,7 @@ export type Job<T> = () => Promise<T>
 
 export interface QueuePromises {
   readonly runned: number
-  state (): 'idle'|QueueState,
+  state (): 'idle'|'finished'|QueueState,
   enqueue<T> (item: Job<T>):void,
   promise<T> (item: Job<T>): Promise<T>,
   waitFor(): Promise<void>
@@ -45,51 +45,12 @@ export function queuePromises (opts?: QueryPromisesOpts): QueuePromises {
   let canRefresh = 0
   let lastError: any
   let runned = 0
-  const state: QueueState = {
-    get size () {
-      return size
-    },
-    get running () {
-      return running
-    },
-    get pending () {
-      return queue.length
-    },
-    get done () {
-      return size - queue.length
-    },
-    get percent () {
-      return Math.round((size - queue.length) / size * 1000) / 10
-    },
-    get rate () {
-      const now = Date.now()
-      if (now < canRate) return '-'
-      const ellapsed = (now - start) / 1000
-      const rate = (size - queue.length) / (ellapsed)
-      return rate
-    },
-    get timeRemaining () {
-      const now = Date.now()
-      if (now < canRate) return '-'
-      const ellapsed = (now - start) / 1000
-      const rate = (size - queue.length) / (ellapsed)
-      const seconds = (size - queue.length) / rate
-      if (seconds < 2) return 'one second'
-      if (seconds < 50) return (seconds).toFixed(0) + ' seconds'
-      if (seconds < 120) return 'one minute'
-      const minutes = seconds / 60
-      if (minutes < 60) return (minutes).toFixed(0) + ' minutes'
-      const hours = minutes / 60
-      if (minutes < 120) return 'one hour'
-      return (hours).toFixed(0) + ' hours'
-    }
-  }
   return {
     get runned () {
       return runned
     },
     state () {
-      return idle ? 'idle' : state
+      return idle ? 'idle' : getState()
     },
     enqueue<T> (item: Job<T>) {
       queue.push(item)
@@ -116,6 +77,7 @@ export function queuePromises (opts?: QueryPromisesOpts): QueuePromises {
     },
     setConcurrency (newconcurrency: number): void {
       concurrency = Math.max(newconcurrency, 1)
+      scheduleProcess()
     },
     forceState (opts: {
       start: number,
@@ -138,11 +100,11 @@ export function queuePromises (opts?: QueryPromisesOpts): QueuePromises {
     const now = Date.now()
     if (now > canRefresh) {
       canRefresh = now + 1000
-      onProgress && setTimeout(() => {
+      onProgress && asap(() => {
         if (size > 0) {
-          onProgress(state)
+          onProgress(getState())
         }
-      }, 1)
+      })
     }
     if (queue.length) {
       asap(processNext)
@@ -156,20 +118,66 @@ export function queuePromises (opts?: QueryPromisesOpts): QueuePromises {
     }
   }
 
-  async function processNext () {
+  function processNext () {
     while (running < concurrency) {
       const fn = queue.shift()
       if (!fn) break
       running++
-      try {
-        await fn()
-      } catch (e:any) {
-        lastError = e
-      } finally {
-        runned++
-        running--
-        scheduleProcess()
+      fn()
+        .catch(err => { lastError = err })
+        .finally(async () => {
+          runned++
+          running--
+          scheduleProcess()
+        })
+    }
+  }
+
+  function getState (): QueueState {
+    return {
+      get size () {
+        return size
+      },
+      get running () {
+        return running
+      },
+      get pending () {
+        return queue.length
+      },
+      get done () {
+        return size - queue.length
+      },
+      get percent () {
+        return Math.round((size - queue.length) / size * 1000) / 10
+      },
+      get rate () {
+        return computeRate()
+      },
+      get timeRemaining () {
+        return computeTimeRemaining()
       }
+    }
+    function computeRate () {
+      const now = Date.now()
+      if (now < canRate) return '-'
+      const ellapsed = (now - start) / 1000
+      const rate = (size - queue.length) / (ellapsed)
+      return rate
+    }
+    function computeTimeRemaining () {
+      const now = Date.now()
+      if (now < canRate) return '-'
+      const ellapsed = (now - start) / 1000
+      const rate = (size - queue.length) / (ellapsed)
+      const seconds = (size - queue.length) / rate
+      if (seconds < 2) return 'one second'
+      if (seconds < 50) return (seconds).toFixed(0) + ' seconds'
+      if (seconds < 120) return 'one minute'
+      const minutes = seconds / 60
+      if (minutes < 60) return (minutes).toFixed(0) + ' minutes'
+      const hours = minutes / 60
+      if (minutes < 120) return 'one hour'
+      return (hours).toFixed(0) + ' hours'
     }
   }
 }

@@ -2,7 +2,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/teintinu/pjobs/badge.svg?branch=main)](https://coveralls.io/github/teintinu/pjobs?branch=main)
 
 # pjobs
-A simple and efficient queue job executor using promises. And some promise's utilities.
+A simple, efficient and small (just 2kb) queue job executor using promises. And some promise's utilities.
 
 # install
 
@@ -13,7 +13,7 @@ npm install --save pjobs
 # usage
 
 ## `queuePromises` 
-defines an executor for jobs. A job is just a function that returns a Promise. You can also control concurrency and promises. [Demonstration](https://codesandbox.io/s/queuepromises-demo-iptow)
+defines an executor for jobs. A job is just a function that returns a Promise. You can also control concurrency and promises. [Demonstration](https://iptow.csb.app/)
 ```typescript
 import { queuePromises } from 'pjobs'
 const queue = queuePromises({ 
