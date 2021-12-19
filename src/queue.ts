@@ -4,6 +4,7 @@ import { defer } from './defer'
 export type QueueState = {
   readonly pending: number
   readonly size: number
+  readonly running: number
   readonly done: number
   readonly percent: number
   readonly rate: number | '-'
@@ -23,6 +24,7 @@ export interface QueuePromises {
   enqueue<T> (item: Job<T>):void,
   promise<T> (item: Job<T>): Promise<T>,
   waitFor(): Promise<void>
+  setConcurrency (concurrency: number): void
   forceState (opts: {
     start: number,
     canRate: number,
@@ -32,7 +34,7 @@ export interface QueuePromises {
 }
 
 export function queuePromises (opts?: QueryPromisesOpts): QueuePromises {
-  const concurrency = opts?.concurrency || 1
+  let concurrency = Math.max(1, opts?.concurrency || 1)
   const onProgress = opts?.onProgress
   const queue: Array<Job<any>> = []
   let size = 0
@@ -46,6 +48,9 @@ export function queuePromises (opts?: QueryPromisesOpts): QueuePromises {
   const state: QueueState = {
     get size () {
       return size
+    },
+    get running () {
+      return running
     },
     get pending () {
       return queue.length
@@ -108,6 +113,9 @@ export function queuePromises (opts?: QueryPromisesOpts): QueuePromises {
           } else setTimeout(check, 100)
         }
       })
+    },
+    setConcurrency (newconcurrency: number): void {
+      concurrency = Math.max(newconcurrency, 1)
     },
     forceState (opts: {
       start: number,

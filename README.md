@@ -13,7 +13,7 @@ npm install --save pjobs
 # usage
 
 ## `queuePromises` 
-defines an executor for jobs. A job is just a function that returns a Promise. You can also control concurrency and promises.
+defines an executor for jobs. A job is just a function that returns a Promise. You can also control concurrency and promises. [Demonstration](https://codesandbox.io/s/queuepromises-demo-iptow)
 ```typescript
 import { queuePromises } from 'pjobs'
 const queue = queuePromises({ 

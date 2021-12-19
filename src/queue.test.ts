@@ -102,6 +102,7 @@ describe('queuePromises', () => {
             ? '~' + expectedDone
             : String(status.done)
           const expectedPending = 100 - log.length * 10
+          const running = status.running
           const pending = (status.pending >= expectedPending - 2 && status.pending <= expectedPending + 2)
             ? '~' + expectedPending
             : String(status.pending)
@@ -115,6 +116,7 @@ describe('queuePromises', () => {
           log.push([
             `done: ${done}`,
             `pending: ${pending}`,
+            `running: ${running}`,
             `percent: ${percent}`,
             `rate: ${rate}`,
             `timeRemaining: ${status.timeRemaining}`,
@@ -130,16 +132,16 @@ describe('queuePromises', () => {
     await queue.waitFor()
     expect(queue.state()).toBe('idle')
     expect(log).toEqual([
-      'done: ~0,pending: ~100,percent: ~0,rate: -,timeRemaining: -,size: 100',
-      'done: ~10,pending: ~90,percent: ~10,rate: ~10,timeRemaining: one second,size: 100',
-      'done: ~20,pending: ~80,percent: ~20,rate: ~10,timeRemaining: 2 seconds,size: 100',
-      'done: ~30,pending: ~70,percent: ~30,rate: ~10,timeRemaining: 3 seconds,size: 100',
-      'done: ~40,pending: ~60,percent: ~40,rate: ~10,timeRemaining: 4 seconds,size: 100',
-      'done: ~50,pending: ~50,percent: ~50,rate: ~10,timeRemaining: 5 seconds,size: 100',
-      'done: ~60,pending: ~40,percent: ~60,rate: ~10,timeRemaining: 6 seconds,size: 100',
-      'done: ~70,pending: ~30,percent: ~70,rate: ~10,timeRemaining: 7 seconds,size: 100',
-      'done: ~80,pending: ~20,percent: ~80,rate: ~10,timeRemaining: 8 seconds,size: 100',
-      'done: ~90,pending: ~10,percent: ~90,rate: ~10,timeRemaining: 9 seconds,size: 100',
+      'done: ~0,pending: ~100,running: 0,percent: ~0,rate: -,timeRemaining: -,size: 100',
+      'done: ~10,pending: ~90,running: 1,percent: ~10,rate: ~10,timeRemaining: one second,size: 100',
+      'done: ~20,pending: ~80,running: 1,percent: ~20,rate: ~10,timeRemaining: 2 seconds,size: 100',
+      'done: ~30,pending: ~70,running: 1,percent: ~30,rate: ~10,timeRemaining: 3 seconds,size: 100',
+      'done: ~40,pending: ~60,running: 1,percent: ~40,rate: ~10,timeRemaining: 4 seconds,size: 100',
+      'done: ~50,pending: ~50,running: 1,percent: ~50,rate: ~10,timeRemaining: 5 seconds,size: 100',
+      'done: ~60,pending: ~40,running: 1,percent: ~60,rate: ~10,timeRemaining: 6 seconds,size: 100',
+      'done: ~70,pending: ~30,running: 1,percent: ~70,rate: ~10,timeRemaining: 7 seconds,size: 100',
+      'done: ~80,pending: ~20,running: 1,percent: ~80,rate: ~10,timeRemaining: 8 seconds,size: 100',
+      'done: ~90,pending: ~10,running: 1,percent: ~90,rate: ~10,timeRemaining: 9 seconds,size: 100',
       'finished:100'
     ])
   })
