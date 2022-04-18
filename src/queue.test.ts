@@ -87,6 +87,11 @@ describe('queuePromises', () => {
   it('should report valid status', async () => {
     const log: string[] = []
     let lastloged = -1
+    const now = Date.now
+    let mockedDate = Date.now()
+    jest.spyOn<any, any>(Date, 'now').mockImplementation(() => {
+      return mockedDate
+    })
     const queue = queuePromises({
       concurrency: 1,
       onProgress (status) {
@@ -94,18 +99,28 @@ describe('queuePromises', () => {
           if (lastloged === status.done) return
           lastloged = status.done
           const expectedDone = log.length * 10
-          const done = (status.done >= expectedDone - 2 && status.done <= expectedDone + 2)
+          const done = (status.done >= expectedDone - 10 && status.done <= expectedDone + 10)
             ? '~' + expectedDone
             : String(status.done)
           const expectedPending = 100 - log.length * 10
           const running = status.running
-          const pending = (status.pending >= expectedPending - 2 && status.pending <= expectedPending + 2)
+          const pending = (status.pending >= expectedPending - 10 && status.pending <= expectedPending + 10)
             ? '~' + expectedPending
             : String(status.pending)
           const expectedPercent = 100 - expectedPending
-          const percent = (status.percent >= expectedPercent - 2 && status.percent <= expectedPercent + 2)
+          const percent = (status.percent >= expectedPercent - 10 && status.percent <= expectedPercent + 10)
             ? '~' + expectedPercent
             : String(status.percent)
+          let tr = status.timeRemaining.replace(' seconds', '')
+          if (tr === 'one second') tr = '1'
+          const trv = tr === '-' ? 0 : parseInt(tr, 10)
+          const expectedTimeRemaining = Math.round(expectedPending / 10)
+          const timeRemaining = tr === '-'
+            ? '-'
+            : (trv >= expectedTimeRemaining - 4 && trv <= expectedTimeRemaining + 4)
+                ? '~' + expectedTimeRemaining
+                : tr + '!=' + expectedTimeRemaining
+
           const rate = (status.rate >= 9 && status.rate <= 11)
             ? '~10'
             : String(status.rate)
@@ -115,29 +130,36 @@ describe('queuePromises', () => {
             `running: ${running}`,
             `percent: ${percent}`,
             `rate: ${rate}`,
-            `timeRemaining: ${status.timeRemaining}`,
+            `timeRemaining: ${timeRemaining}`,
             `size: ${status.size}`
           ].join())
         }
       }
     })
+    let start = now.call(Date)
     for (let i = 0; i < 100; i++) {
-      queue.enqueue(() => sleep(100))
+      const idx=i
+      queue.enqueue(async () => {
+        let tm = (100 + idx * 100) - (now.call(Date) - start)
+        if(tm<1)tm=1
+        await sleep(tm)
+        mockedDate += 100
+      })
     }
     expect(queue.state()).not.toBe('idle')
     await queue.waitFor()
     expect(queue.state()).toBe('idle')
     expect(log).toEqual([
       'done: ~0,pending: ~100,running: 1,percent: ~0,rate: -,timeRemaining: -,size: 100',
-      'done: ~10,pending: ~90,running: 1,percent: ~10,rate: ~10,timeRemaining: 8 seconds,size: 100',
-      'done: ~20,pending: ~80,running: 1,percent: ~20,rate: ~10,timeRemaining: 8 seconds,size: 100',
-      'done: ~30,pending: ~70,running: 1,percent: ~30,rate: ~10,timeRemaining: 7 seconds,size: 100',
-      'done: ~40,pending: ~60,running: 1,percent: ~40,rate: ~10,timeRemaining: 6 seconds,size: 100',
-      'done: ~50,pending: ~50,running: 1,percent: ~50,rate: ~10,timeRemaining: 5 seconds,size: 100',
-      'done: ~60,pending: ~40,running: 1,percent: ~60,rate: ~10,timeRemaining: 4 seconds,size: 100',
-      'done: ~70,pending: ~30,running: 1,percent: ~70,rate: ~10,timeRemaining: 3 seconds,size: 100',
-      'done: ~80,pending: ~20,running: 1,percent: ~80,rate: ~10,timeRemaining: one second,size: 100',
-      'done: ~90,pending: ~10,running: 1,percent: ~90,rate: ~10,timeRemaining: one second,size: 100'
+      'done: ~10,pending: ~90,running: 1,percent: ~10,rate: ~10,timeRemaining: ~9,size: 100',
+      'done: ~20,pending: ~80,running: 1,percent: ~20,rate: ~10,timeRemaining: ~8,size: 100',
+      'done: ~30,pending: ~70,running: 1,percent: ~30,rate: ~10,timeRemaining: ~7,size: 100',
+      'done: ~40,pending: ~60,running: 1,percent: ~40,rate: ~10,timeRemaining: ~6,size: 100',
+      'done: ~50,pending: ~50,running: 1,percent: ~50,rate: ~10,timeRemaining: ~5,size: 100',
+      'done: ~60,pending: ~40,running: 1,percent: ~60,rate: ~10,timeRemaining: ~4,size: 100',
+      'done: ~70,pending: ~30,running: 1,percent: ~70,rate: ~10,timeRemaining: ~3,size: 100',
+      'done: ~80,pending: ~20,running: 1,percent: ~80,rate: ~10,timeRemaining: ~2,size: 100',
+      'done: ~90,pending: ~10,running: 1,percent: ~90,rate: ~10,timeRemaining: ~1,size: 100'
     ])
   })
 

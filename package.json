@@ -3,6 +3,10 @@
   "license": "GPL-3.0-or-later",
   "description": "A simple and efficient queue job executor using promises. And some promise's utilities.",
   "version": "1.1.4",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/teintinu/pjobs.git"
+  },
   "private": false,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
