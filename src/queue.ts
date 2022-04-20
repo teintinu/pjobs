@@ -22,7 +22,9 @@ export type Job<T> = () => Promise<T>;
 export interface QueuePromises {
   state(): 'idle' | QueueState;
   enqueue<T>(item: Job<T>): void;
+  enqueue<T>(items: Array<Job<T>>): void;
   promise<T>(item: Job<T>): Promise<T>;
+  promise<T>(items: Array<Job<T>>): Promise<T[]>;
   waitFor(): Promise<void>;
   setConcurrency(concurrency: number): void;
   forceState(opts: {
@@ -51,16 +53,25 @@ export function queuePromises (opts?: QueryPromisesOpts): QueuePromises {
     state () {
       return idle ? 'idle' : getState()
     },
-    enqueue<T> (item: Job<T>) {
-      queue.push(item)
-      size++
+    enqueue<T> (item: Job<T> | Array<Job<T>>) {
+      if (Array.isArray(item)) {
+        queue.push(...item)
+        size += item.length
+      } else {
+        queue.push(item)
+        size++
+      }
       canRate = Date.now() + 1000
       process()
     },
-    promise<T> (item: Job<T>) {
-      const deferred = defer<T>()
-      this.enqueue(() => item().then(deferred.resolve, deferred.reject))
-      return deferred.promise
+    promise<T> (item: Job<T> | Array<Job<T>>) {
+      if (Array.isArray(item)) {
+        return Promise.all(item.map(job => this.promise(job)))
+      } else {
+        const deferred = defer<T>()
+        this.enqueue(() => item().then(deferred.resolve, deferred.reject))
+        return deferred.promise
+      }
     },
     waitFor () {
       return new Promise<void>((resolve, reject) => {
@@ -168,7 +179,7 @@ export function queuePromises (opts?: QueryPromisesOpts): QueuePromises {
       },
       get timeRemaining () {
         return computeTimeRemaining()
-      },
+      }
     }
     function computeRate () {
       const now = Date.now()

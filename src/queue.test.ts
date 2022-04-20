@@ -136,12 +136,12 @@ describe('queuePromises', () => {
         }
       }
     })
-    let start = now.call(Date)
+    const start = now.call(Date)
     for (let i = 0; i < 100; i++) {
-      const idx=i
+      const idx = i
       queue.enqueue(async () => {
         let tm = (100 + idx * 100) - (now.call(Date) - start)
-        if(tm<1)tm=1
+        if (tm < 1)tm = 1
         await sleep(tm)
         mockedDate += 100
       })
@@ -341,5 +341,46 @@ describe('queuePromises', () => {
 
     await queue.waitFor()
     expect(queue.state()).toBe('idle')
+  })
+
+  it('shoud support enqueue arrays', async () => {
+    const queue = queuePromises()
+    let a = false
+    let b = false
+    queue.enqueue([
+      async () => {
+        await sleep(1)
+        a = true
+      },
+      async () => {
+        await sleep(1)
+        b = true
+      }
+    ])
+    await queue.waitFor()
+    expect(a).toBe(true)
+    expect(b).toBe(true)
+  })
+
+  it('shoud support promisify arrays', async () => {
+    const queue = queuePromises()
+    let a = false
+    let b = false
+    const all = await queue.promise([
+      async () => {
+        await sleep(1)
+        a = true
+        return 1
+      },
+      async () => {
+        await sleep(1)
+        b = true
+        return 2
+      }
+    ])
+    await queue.waitFor()
+    expect(a).toBe(true)
+    expect(b).toBe(true)
+    expect(all).toEqual([1, 2])
   })
 })
