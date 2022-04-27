@@ -3,26 +3,35 @@ module.exports = {
     browser: true,
     es2021: true,
     node: true,
-    jest: true
+    jest: true,
   },
   extends: [
-    'standard'
+    "airbnb-base",
+    "plugin:prettier/recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
   ],
-  parser: '@typescript-eslint/parser',
+  parser: "@typescript-eslint/parser",
   parserOptions: {
-    sourceType: 'module',
+    sourceType: "module",
     tsconfigRootDir: __dirname,
-    project: ['./tsconfig.eslint.json']
+    project: ["./tsconfig.eslint.json"],
   },
-  plugins: [
-    'react',
-    '@typescript-eslint'
-  ],
+  plugins: ["@typescript-eslint"],
   rules: {
+    "import/no-unresolved": "off",
+    "import/prefer-default-export": "off",
+    "@typescript-eslint/unbound-method": "off",
+    "import/extensions": "off",
+    "no-use-before-define": "off",
+    "no-plusplus": "off",
+    "no-void": "off",
+    "no-loop-func": "off",
+    "no-return-awaits": "off",
   },
   settings: {
     react: {
-      version: 'detect'
-    }
-  }
-}
+      version: "detect",
+    },
+  },
+};

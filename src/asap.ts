@@ -1,3 +1,3 @@
-export function asap (fn: ()=> void) {
-  setTimeout(() => fn(), 1)
+export function asap(fn: () => void) {
+  setTimeout(() => fn(), 1);
 }

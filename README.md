@@ -2,7 +2,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/teintinu/pjobs/badge.svg?branch=main)](https://coveralls.io/github/teintinu/pjobs?branch=main)
 
 # pjobs
-A simple, efficient and small (just 2kb) queue job executor using promises. And some promise's utilities.
+A simple, efficient and small (just 2.8kb) queue job executor using promises with concurrency control. And some promise's utilities.
 
 # install
 
@@ -32,6 +32,24 @@ const promiseForTask2 = queue.promise(async () => { // add another job but retur
 
 await queue.waitFor() // wait for all jobs to be finished.
 await promiseForTask2 // returns 'OK'
+
+await queue.forEach(['task 3', 'task 4'], async (item) => {
+  console.log(item) // works similar to Array.forEach
+})
+
+const doubles = await queue.map([1,2], async (item) => {
+  return item * 2 // works similar to Array.map
+})
+
+const sum = await queue.reduce([1,2,3,4], async (ret, item) => {
+  return item + ret // works similar to Array.reduce
+  // When concurrency is one, items are processed sequentially. If concurrency is greater, the order of processing will variate
+}, 0)
+
+const two = await queue.some([1,2,3,4], async (item) => {
+  return item % 2 === 0 // works similar to Array.some returns then found item or undefined
+  // 4 is not returned because concurrency is 1. If concurrency is greater, the return value could be 2 or 4
+})
 ```
 
 ## `defer` 

@@ -1,47 +1,49 @@
-const { pathsToModuleNameMapper } = require('ts-jest/utils')
-const { compilerOptions } = require('./tsconfig.test')
+/* eslint-disable import/extensions */
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
-const moduleNameMapper = pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>/' })
+const { pathsToModuleNameMapper } = require("ts-jest/utils");
+const { compilerOptions } = require("./tsconfig.test");
+
+const moduleNameMapper = pathsToModuleNameMapper(compilerOptions.paths, {
+  prefix: "<rootDir>/",
+});
 
 module.exports = {
   testTimeout: 15000,
-  preset: 'ts-jest',
-  modulePathIgnorePatterns: ['dist'],
-  testPathIgnorePatterns: ['node_modules', 'dist'],
-  testMatch: ['**/*.test.ts'],
+  preset: "ts-jest",
+  modulePathIgnorePatterns: ["dist"],
+  testPathIgnorePatterns: ["node_modules", "dist"],
+  testMatch: ["**/*.test.ts"],
   globals: {
-    'ts-jest': {
-      tsConfig: 'tsconfig.test.json'
-    }
+    "ts-jest": {
+      tsConfig: "tsconfig.test.json",
+    },
   },
   moduleNameMapper,
   transform: {
-    '^.+\\.tsx?$': [
-      'esbuild-jest',
+    "^.+\\.tsx?$": [
+      "esbuild-jest",
       {
-        sourcemap: 'inline',
-        target: ['es6', 'node12'],
+        sourcemap: "inline",
+        target: ["es6", "node12"],
         loaders: {
-          '.spec.ts': 'tsx',
-          '.test.ts': 'tsx',
-          '.steps.ts': 'tsx'
-        }
-      }
-    ]
+          ".spec.ts": "tsx",
+          ".test.ts": "tsx",
+          ".steps.ts": "tsx",
+        },
+      },
+    ],
   },
-  coverageReporters: [
-    'text',
-    'html',
-    'lcov',
-    'cobertura',
-    'json-summary'
-  ],
+  coverageReporters: ["text", "html", "lcov", "cobertura", "json-summary"],
   coverageThreshold: {
     global: {
       lines: 90,
       statements: 80,
       functions: 90,
-      branches: 70
-    }
-  }
-}
+      branches: 70,
+    },
+  },
+};
