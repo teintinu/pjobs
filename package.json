@@ -2,7 +2,7 @@
   "name": "pjobs",
   "license": "GPL-3.0-or-later",
   "description": "A simple, efficient, small and no dependencies queue job executor using promises with concurrency control. And some promise's utilities.",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/teintinu/pjobs.git"

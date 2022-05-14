@@ -28,10 +28,10 @@ export interface QueuePromises {
     items: T[],
     fn: (item: T, currentIndex: number, array: T[]) => Promise<void>
   ): Promise<void>;
-  map<T>(
+  map<U, T>(
     items: T[],
-    fn: (item: T, currentIndex: number, array: T[]) => Promise<T>
-  ): Promise<T[]>;
+    fn: (item: T, currentIndex: number, array: T[]) => Promise<U>
+  ): Promise<U[]>;
   reduce<U, T>(
     items: T[],
     fn: (
@@ -103,10 +103,10 @@ export function queuePromises(opts?: QueryPromisesOpts): QueuePromises {
         })
       ).then(() => undefined);
     },
-    map<T>(
+    map<U, T>(
       items: T[],
-      fn: (item: T, idx: number, arr: T[]) => Promise<T>
-    ): Promise<T[]> {
+      fn: (item: T, idx: number, arr: T[]) => Promise<U>
+    ): Promise<U[]> {
       return Promise.all(
         items.map((item, idx, arr) => {
           return this.promise(() => fn(item, idx, arr));

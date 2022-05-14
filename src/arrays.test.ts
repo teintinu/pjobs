@@ -31,7 +31,7 @@ describe("queuePromises array", () => {
     });
     const array = ["task 1", "task 2"];
     const result = queue.map(array, async (item, idx, arr) => {
-      expect(arr).toBe(arr);
+      expect(array).toBe(arr);
       if (item === "task 1") expect(idx).toBe(0);
       if (item === "task 2") expect(idx).toBe(1);
       console.log(item);
@@ -39,6 +39,25 @@ describe("queuePromises array", () => {
     });
     expect(queue.state()).not.toBe("idle");
     expect(await result).toEqual(["TASK 1", "TASK 2"]);
+    const state = queue.state();
+    if (state !== "idle" && state.pending)
+      throw new Error("was expected no jobs pending");
+    await queue.waitFor();
+    expect(queue.state()).toBe("idle");
+  });
+  it("should support map changing type", async () => {
+    const queue = queuePromises({
+      onProgress(status) {
+        console.log("queue status: ", status);
+      },
+    });
+    const array = ["task 1", "task 2"];
+    const result = queue.map(array, async (item, idx, arr) => {
+      expect(arr).toBe(arr);
+      return Promise.resolve(parseInt(item.substring(5), 10));
+    });
+    expect(queue.state()).not.toBe("idle");
+    expect(await result).toEqual([1, 2]);
     const state = queue.state();
     if (state !== "idle" && state.pending)
       throw new Error("was expected no jobs pending");
