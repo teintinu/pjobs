@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { queuePromises } from ".";
 
 describe("queuePromises array", () => {
@@ -78,7 +79,7 @@ describe("queuePromises array", () => {
         expect(idx).toBe(item.length - 1);
         return Promise.resolve(ret + item.length);
       },
-      0
+      0,
     );
     expect(queue.state()).not.toBe("idle");
     expect(await result).toEqual(6);

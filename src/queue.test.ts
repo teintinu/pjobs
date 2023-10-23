@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable no-shadow */
 import { queuePromises, sleep } from ".";
@@ -87,7 +88,7 @@ describe("queuePromises", () => {
     let lastloged = -1;
     const { now } = Date;
     let mockedDate = Date.now();
-    jest.spyOn<any, any>(Date, "now").mockImplementation(() => {
+    jest.spyOn(Date, "now").mockImplementation(() => {
       return mockedDate;
     });
     const queue = queuePromises({
@@ -127,7 +128,11 @@ describe("queuePromises", () => {
               : `${tr}!=${expectedTimeRemaining}`;
 
           const rate =
-            status.rate >= 9 && status.rate <= 11 ? "~10" : String(status.rate);
+            typeof status.rate === "number" &&
+            status.rate >= 9 &&
+            status.rate <= 11
+              ? "~10"
+              : String(status.rate);
           log.push(
             [
               `done: ${done}`,
@@ -137,7 +142,7 @@ describe("queuePromises", () => {
               `rate: ${rate}`,
               `timeRemaining: ${timeRemaining}`,
               `size: ${status.size}`,
-            ].join()
+            ].join(),
           );
         }
       },
@@ -175,7 +180,7 @@ describe("queuePromises", () => {
     });
     for (let i = 1; i <= 20; i++) {
       queue.enqueue(
-        i <= 10 ? async () => sleep(1000) : async () => Promise.resolve()
+        i <= 10 ? async () => sleep(1000) : async () => Promise.resolve(),
       );
     }
 
@@ -313,9 +318,8 @@ describe("queuePromises", () => {
     try {
       await queue.waitFor();
       throw new Error("waitFor must throw an exception");
-    } catch (e: any) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      expect(e.message).toBe("some error");
+    } catch (e) {
+      expect((e as Error).message).toBe("some error");
     }
     expect(queue.state()).toBe("idle");
   });

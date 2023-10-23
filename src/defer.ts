@@ -1,12 +1,12 @@
 export interface Defer<T> {
   promise: Promise<T>;
   resolve(v: T): void;
-  reject(reason: any): void;
+  reject(reason: unknown): void;
 }
 
 export function defer<T>(): Defer<T> {
   let resolveFn: (v: T) => void;
-  let rejectFn: (reason: any) => void;
+  let rejectFn: (reason: unknown) => void;
 
   const promise = new Promise<T>((resolve, reject) => {
     resolveFn = resolve;
@@ -20,7 +20,7 @@ export function defer<T>(): Defer<T> {
         resolveFn(v);
       }
     },
-    reject(reason: any) {
+    reject(reason) {
       if (rejectFn) {
         rejectFn(reason);
       }

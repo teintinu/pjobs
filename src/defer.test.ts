@@ -21,9 +21,8 @@ describe("defer", () => {
     try {
       const v = await p.promise;
       expect(v).toBeUndefined();
-    } catch (e: any) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      expect(e.message).toBe("error");
+    } catch (e: unknown) {
+      expect((e as Error).message).toBe("error");
     }
   });
 });

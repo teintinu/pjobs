@@ -26,11 +26,11 @@ export interface QueuePromises {
   promise<T>(items: Array<Job<T>>): Promise<T[]>;
   forEach<T>(
     items: T[],
-    fn: (item: T, currentIndex: number, array: T[]) => Promise<void>
+    fn: (item: T, currentIndex: number, array: T[]) => Promise<void>,
   ): Promise<void>;
   map<U, T>(
     items: T[],
-    fn: (item: T, currentIndex: number, array: T[]) => Promise<U>
+    fn: (item: T, currentIndex: number, array: T[]) => Promise<U>,
   ): Promise<U[]>;
   reduce<U, T>(
     items: T[],
@@ -38,13 +38,13 @@ export interface QueuePromises {
       previousValue: U,
       currentValue: T,
       currentIndex: number,
-      array: T[]
+      array: T[],
     ) => Promise<U>,
-    initialValue: U
+    initialValue: U,
   ): Promise<U>;
   some<T>(
     items: T[],
-    fn: (item: T, currentIndex: number, array: T[]) => Promise<boolean>
+    fn: (item: T, currentIndex: number, array: T[]) => Promise<boolean>,
   ): Promise<T | undefined>;
   waitFor(): Promise<void>;
   setConcurrency(concurrency: number): void;
@@ -68,7 +68,7 @@ export function queuePromises(opts?: QueryPromisesOpts): QueuePromises {
   let canRate = 0;
   let tmProgress: NodeJS.Timeout;
   let canProgress = 0;
-  let lastError: any;
+  let lastError: unknown;
   let done = 0;
   return {
     state() {
@@ -95,22 +95,22 @@ export function queuePromises(opts?: QueryPromisesOpts): QueuePromises {
     },
     forEach<T>(
       items: T[],
-      fn: (item: T, idx: number, arr: T[]) => Promise<void>
+      fn: (item: T, idx: number, arr: T[]) => Promise<void>,
     ): Promise<void> {
       return Promise.all(
         items.map((item, idx, arr) => {
           return this.promise(() => fn(item, idx, arr));
-        })
+        }),
       ).then(() => undefined);
     },
     map<U, T>(
       items: T[],
-      fn: (item: T, idx: number, arr: T[]) => Promise<U>
+      fn: (item: T, idx: number, arr: T[]) => Promise<U>,
     ): Promise<U[]> {
       return Promise.all(
         items.map((item, idx, arr) => {
           return this.promise(() => fn(item, idx, arr));
-        })
+        }),
       );
     },
     reduce<U, T>(
@@ -119,9 +119,9 @@ export function queuePromises(opts?: QueryPromisesOpts): QueuePromises {
         previousValue: U,
         currentValue: T,
         currentIndex: number,
-        array: T[]
+        array: T[],
       ) => Promise<U>,
-      initialValue: U
+      initialValue: U,
     ): Promise<U> {
       let value = initialValue;
       return Promise.all(
@@ -129,14 +129,14 @@ export function queuePromises(opts?: QueryPromisesOpts): QueuePromises {
           this.promise(() =>
             fn(value, item, idx, arr).then((val) => {
               value = val;
-            })
-          )
-        )
+            }),
+          ),
+        ),
       ).then(() => value);
     },
     some<T>(
       items: T[],
-      fn: (item: T, idx: number, arr: T[]) => Promise<boolean>
+      fn: (item: T, idx: number, arr: T[]) => Promise<boolean>,
     ): Promise<T | undefined> {
       let found = false;
       return new Promise<T | undefined>((resolve, reject) => {
@@ -150,8 +150,8 @@ export function queuePromises(opts?: QueryPromisesOpts): QueuePromises {
                   resolve(item);
                 }
               }, reject);
-            })
-          )
+            }),
+          ),
         ).then(() => {
           if (!found) resolve(undefined);
         });
@@ -230,7 +230,6 @@ export function queuePromises(opts?: QueryPromisesOpts): QueuePromises {
       updateUI();
       fn()
         .catch((err) => {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           lastError = err;
         })
         .finally(() => {
