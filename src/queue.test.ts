@@ -123,9 +123,9 @@ describe("queuePromises", () => {
             tr === "-"
               ? "-"
               : trv >= expectedTimeRemaining - 4 &&
-                trv <= expectedTimeRemaining + 4
-              ? `~${expectedTimeRemaining}`
-              : `${tr}!=${expectedTimeRemaining}`;
+                  trv <= expectedTimeRemaining + 4
+                ? `~${expectedTimeRemaining}`
+                : `${tr}!=${expectedTimeRemaining}`;
 
           const rate =
             typeof status.rate === "number" &&
